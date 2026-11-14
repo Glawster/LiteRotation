@@ -13,7 +13,7 @@
 
 local _, ns = ...
 local LR = ns.LR
-local read, field = LR.read, LR.field
+local read = LR.read
 
 local FSR = 5 -- the five-second rule
 

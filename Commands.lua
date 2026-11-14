@@ -182,8 +182,14 @@ SlashCmdList.LITEROTATION = function(msg)
         if sec and db.ttl[class] then
             db.ttl[class] = sec
         end
-        Print("target lifetime: normal %ds, elite %ds, rare %ds, rareelite %ds, worldboss %ds.",
-            db.ttl.normal, db.ttl.elite, db.ttl.rare, db.ttl.rareelite, db.ttl.worldboss)
+        Print(
+            "target lifetime: normal %ds, elite %ds, rare %ds, rareelite %ds, worldboss %ds.",
+            db.ttl.normal,
+            db.ttl.elite,
+            db.ttl.rare,
+            db.ttl.rareelite,
+            db.ttl.worldboss
+        )
     elseif cmd == "mana" and tonumber(a) then
         db.manaWeight = tonumber(a)
         Print("mana weight %.2f.", db.manaWeight)
@@ -199,6 +205,8 @@ SlashCmdList.LITEROTATION = function(msg)
         LR:ScanSpells()
         Print("rescanned: %d spells.", #(LR.spells or {}))
     else
-        Print("commands: lock, unlock, scale <n>, spells, log [on|off], why, toggle <spell>, ttl [class] <sec>, mana <w>, health <w>, depth <n>, probe, rescan")
+        Print(
+            "commands: lock, unlock, scale <n>, spells, log [on|off], why, toggle <spell>, ttl [class] <sec>, mana <w>, health <w>, depth <n>, probe, rescan"
+        )
     end
 end

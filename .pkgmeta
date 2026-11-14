@@ -13,3 +13,4 @@ ignore:
   - stylua.toml
   - .pre-commit-config.yaml
   - LiteRotationEnvironment.yml
+  - .envrc

@@ -36,17 +36,17 @@ function LR:CreateUI()
     f:EnableMouse(not db.locked)
     f:RegisterForDrag("LeftButton")
     f:SetScript("OnDragStart", f.StartMoving)
-    f:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        local a, _, rp, x, y = self:GetPoint()
+    f:SetScript("OnDragStop", function(frame)
+        frame:StopMovingOrSizing()
+        local a, _, rp, x, y = frame:GetPoint()
         db.point = { a, "UIParent", rp, x, y }
     end)
-    f:SetScript("OnEnter", function(self)
+    f:SetScript("OnEnter", function(frame)
         local r = LR.result
         if not r or not r.seq[1] then
             return
         end
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetOwner(frame, "ANCHOR_TOP")
         GameTooltip:AddLine("LiteRotation")
         for i, s in ipairs(r.seq) do
             GameTooltip:AddLine(("%d. %s"):format(i, s.name or s.key), 1, 1, 1)

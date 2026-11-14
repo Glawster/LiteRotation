@@ -123,7 +123,7 @@ local function play(st, s, ctx, effectsOnly)
     end
     local cast = effectsOnly and 0 or (s.castNow or 0) -- a cast under way lands at `ready`, where st.t already is
     local land = start + cast
-    if def.requires and not ((n.debuffs[def.requires] or 0) > land) then
+    if def.requires and (n.debuffs[def.requires] or 0) <= land then
         return nil
     end
     if def.shard and n.shards < 1 then
