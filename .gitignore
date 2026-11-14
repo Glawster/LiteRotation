@@ -1,5 +1,6 @@
-__pycache__/
-logs/
-*.log
-*.pyc
-*.egg-info/
+# packaging output
+.release/
+*.zip
+# local Lua tooling
+.luarocks/
+lua_modules/

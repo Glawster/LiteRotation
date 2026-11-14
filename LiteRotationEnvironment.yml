@@ -3,8 +3,10 @@ channels:
   - conda-forge
 dependencies:
   # OMP-MANAGED-BEGIN
-  - python>=3.10
+  - lua=5.1
+  - luarocks
+  - stylua
+  - pre-commit
   # OMP-MANAGED-END
-  - pip
-  - pip:
-      - -e .[dev]
+# luacheck is not packaged for Conda; after creating the environment run:
+#   luarocks install luacheck

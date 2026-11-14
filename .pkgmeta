@@ -1,0 +1,15 @@
+package-as: LiteRotation
+
+ignore:
+  - .github
+  - .vscode
+  - documentation
+  - project
+  - tests
+  - AGENTS.md
+  - CLAUDE.md
+  - projectGuidelines.md
+  - .luacheckrc
+  - stylua.toml
+  - .pre-commit-config.yaml
+  - LiteRotationEnvironment.yml

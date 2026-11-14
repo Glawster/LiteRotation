@@ -1,11 +1,8 @@
 {
    // OMP-MANAGED-BEGIN
-   "python.testing.pytestEnabled": true,
-   "python.testing.unittestEnabled": false,
-   "python.testing.nosetestsEnabled": false,
-   "python.testing.pytestArgs": [
-      "tests",
-      "--override-ini=python_files=test_[a-z]*.py"
-   ]
+   "Lua.runtime.version": "Lua 5.1",
+   "Lua.workspace.checkThirdParty": false,
+   "Lua.diagnostics.disable": ["undefined-global"],
+   "files.associations": { "*.toc": "ini" }
    // OMP-MANAGED-END
 }

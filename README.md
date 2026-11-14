@@ -133,16 +133,26 @@ Adding a class means writing one `Classes/<Class>.lua` kit and listing it in `Li
 
 ## Development setup
 
-The repository was scaffolded with organiseMyProjects. Use the `wow` Conda environment defined in
-`LiteRotationEnvironment.yml`; it holds the pre-commit tools and organiseMyProjects' `runLinter`, so commit with it
-active (`conda activate wow`). The Python files (`LiteRotation/__init__.py`, `globalVars.py`, `ompr/`) and the
-documentation folders belong to the scaffold; the game ignores them. `~/Source/LiteRotation` is a symlink to the
+The repository follows the OMP WoW addon standard
+([documentation/wowAddon.md](documentation/wowAddon.md)). Lint and formatting
+run as pre-commit hooks from the `wow` Conda environment:
+
+```bash
+conda env update -n wow -f LiteRotationEnvironment.yml
+conda activate wow
+luarocks install luacheck
+pre-commit install
+pre-commit run --all-files    # lint and format everything
+```
+
+Commit with the environment active. `~/Source/LiteRotation` is a symlink to the
 repository in the AddOns folder.
 
 ## Documentation
 
+- [WoW addon standard](documentation/wowAddon.md)
+- [Changelog](CHANGELOG.md)
 - [Architecture](documentation/architecture.md)
-- [Deployed Runtime](documentation/runtimeDeployment.md)
 - [Roadmap](project/roadmap.md)
 - [Current Increment](project/currentIncrement.md)
 - [Requirements](project/requirements/requirementsIndex.md)
