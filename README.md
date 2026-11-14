@@ -97,17 +97,29 @@ for groups of mobs, and Shred. Turn any of them on with `/lrot toggle <spell>`.
 
 ## Installation
 
-The repository is the addon: `LiteRotation.toc` and the Lua files sit at its root. Clone it straight into the game's
-AddOns folder:
+1. Download `LiteRotation-v<version>.zip` from the
+   [latest release](https://github.com/Glawster/LiteRotation/releases).
+2. Extract it into `World of Warcraft/_forever_/Interface/AddOns/`, so you end up with
+   `.../AddOns/LiteRotation/LiteRotation.toc`.
+3. Restart the game (it only looks for new addons at startup) and check that LiteRotation is enabled in the AddOns
+   list at character select.
+
+LiteRotation is for WoW Forever (Interface 16001) and is an early release: the Warlock kit is the most tested, and
+the other classes depend on tooltip wording that may differ on Forever. Run `/lrot spells` first, and please
+[open an issue](https://github.com/Glawster/LiteRotation/issues) with its output if a spell is listed as skipped.
+
+### From source
+
+The repository is the addon: `LiteRotation.toc` and the Lua files sit at its root. To develop it, clone it straight
+into the game's AddOns folder:
 
 ```bash
 cd "<WoW install>/_forever_/Interface/AddOns"
-git clone git@github.com:Glawster/LiteRotation.git
+git clone https://github.com/Glawster/LiteRotation.git
 ```
 
-Then restart the game (it only looks for new addons at startup) and `/reload` after later edits. The game ignores the
-repository's other files. Don't symlink the folder into AddOns instead: under Wine the client doesn't list symlinked
-addon folders.
+Restart the game, then `/reload` after edits. The game ignores the repository's other files. Don't symlink the folder
+into AddOns instead: under Wine the client doesn't list symlinked addon folders.
 
 ## Known limits
 
@@ -167,3 +179,7 @@ repository in the AddOns folder.
 - [Testing Process](documentation/testingProcess.md)
 - [Agent Workflow](documentation/agentImplementationWorkflow.md)
 - [Master Agent Instructions](.github/agent-instructions.md)
+
+## Licence
+
+MIT: see [LICENSE](LICENSE).
