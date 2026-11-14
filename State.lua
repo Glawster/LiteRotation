@@ -295,6 +295,9 @@ function events.UNIT_SPELLCAST_START(unit, _, spellID)
     local _, _, _, _, endMs = read(UnitCastingInfo, "player")
     S.castSpell = s
     S.castEnd = type(endMs) == "number" and endMs / 1000 or now + castTime(s)
+    if LR.db.log then
+        LR:LogCast(s) -- logged when the cast starts, against the recommendation it was chosen from
+    end
     if s.gcd > 0 then
         S.gcdEnd = now + s.gcd
     end
@@ -304,6 +307,9 @@ function events.UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)
     local s = spellOf(spellID)
     if unit ~= "player" or not s then
         return
+    end
+    if LR.db.log and S.castSpell ~= s then
+        LR:LogCast(s) -- an instant or channel (cast-time spells were logged at their start)
     end
     onSucceeded(s, GetTime())
     if S.castSpell == s then

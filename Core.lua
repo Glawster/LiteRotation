@@ -78,6 +78,7 @@ LR.defaults = {
     healthWeight = 0.8,
     depth = 3, -- actions looked ahead
     disabled = {}, -- spell keys the player turned off: [key] = true
+    log = false, -- decision log (/lrot log): records each cast and why; off saves the work
 }
 
 local function fill(dst, src)

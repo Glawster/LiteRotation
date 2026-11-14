@@ -53,8 +53,8 @@ depend more on tooltip wording that hasn't been checked in game yet, so `/lrot s
 ## The display
 
 One large icon shows the spell to cast next, with a cooldown swirl until it can be cast. Two smaller icons show the
-rest of the planned sequence. While the display is unlocked, hover over it to see the plan and its score (when
-locked it ignores the mouse, so clicks pass through to the game; use `/lrot why` instead).
+rest of the planned sequence. When you're out of mana and nothing is castable, it shows a mana potion: drink or use a potion. While the display is unlocked, hover over it to see the plan and its score (when
+locked it ignores the mouse, so clicks pass through to the game; use `/lrot log` and `/lrot why` instead).
 
 It shows while you have an attackable target that isn't dead. Use `/lrot unlock` to drag it, then `/lrot lock`.
 
@@ -67,7 +67,8 @@ It shows while you have an attackable target that isn't dead. Use `/lrot unlock`
 | `/lrot unlock` | Unlock the display so you can drag it. |
 | `/lrot scale <n>` | Set the display scale, e.g. `/lrot scale 1.2`. |
 | `/lrot spells` | List your known spells as the simulator sees them: rank, spell ID, power and cost, cast time, cooldown, tooltip damage (and with your weapon now), combo-point damage, seal numbers, and whether each is turned off or skipped because its tooltip couldn't be read. Ends with your remembered weapon damage and speed. |
-| `/lrot why` | Explain the current recommendation: power (read or estimated), form and combo points where they apply, expected target lifetime, time until you can act, the value of a point of power, the score of each possible next spell, and the planned sequence. |
+| `/lrot log [on\|off]` | Switch the decision log on or off (off by default, which saves a little work each update). While it's on, every spell you cast is recorded with what was recommended at that moment and why. |
+| `/lrot why` | Print the decision log: your last 10 casts, oldest first. Each shows the spell (green if it was the recommendation, orange if not, with the score it had), the recommendation and its score, your power (read or estimated), combo points, expected target lifetime, the next-best alternatives and the planned line. |
 | `/lrot toggle <spell>` | Turn a spell on or off for recommendations, using the names `/lrot spells` shows, e.g. `/lrot toggle death_coil`. |
 | `/lrot ttl <sec>` | Set how long a normal mob is expected to live, in seconds (default 18). |
 | `/lrot ttl <type> <sec>` | Set it for one mob type: `normal`, `elite`, `rare`, `rareelite` or `worldboss` (defaults 18, 45, 45, 60, 180). `/lrot ttl` on its own prints the current values. |
@@ -124,6 +125,7 @@ addon folders.
 | `Core.lua` | Namespace, safe reads of hidden values, settings, class kit registry, spellbook scan. |
 | `Tooltip.lua` | Parses damage from tooltip text. |
 | `Classes/*.lua` | One kit per class (Warlock, Paladin, Hunter, Druid): spell ranks, kinds and rules a tooltip can't express. |
+| `Log.lua` | The decision log behind `/lrot log` and `/lrot why`. |
 | `State.lua` | Tracks casts, cooldowns, DoTs, mana and target lifetime; builds the snapshot for the simulation. |
 | `Sim.lua` | The look-ahead search and scoring (plain Lua, no game calls). |
 | `UI.lua` | The icon display. |

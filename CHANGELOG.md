@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Out of mana shows a mana potion icon instead of the wait clock.
+- `/lrot why` prints a decision log of your last 10 casts: what was recommended
+  and why. `/lrot log` switches the log on or off (off by default).
+
 ## 0.2.0
 
 - Paladin, Hunter and Druid kits.

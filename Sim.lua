@@ -220,8 +220,18 @@ local function play(st, s, ctx, effectsOnly)
 end
 Sim.play = play
 
--- A pause when nothing can be cast (out of power, no wand): one second of regen.
+-- A pause when nothing can be cast: one second of regen. Out of mana gets its own action and a mana potion icon,
+-- so the display tells you to drink or use a potion rather than just wait.
 local WAIT = { key = "wait", def = { kind = "wait" }, cost = 0, gcd = 0, name = "Wait", icon = 136106 }
+local OOM = {
+    key = "oom",
+    def = { kind = "wait" },
+    cost = 0,
+    gcd = 0,
+    name = "Out of mana: drink or use a mana potion",
+    icon = "Interface\\Icons\\INV_Potion_76",
+}
+Sim.WAIT, Sim.OOM = WAIT, OOM
 
 local function value(st, ctx)
     local dt = st.t - ctx.t0
@@ -259,7 +269,7 @@ local function search(st, depth, ctx, line, best)
             line[d] = s
             local v = search(n, depth - 1, ctx, line, best)
             line[d] = nil
-            if d == 1 then
+            if d == 1 and ctx.firsts then
                 ctx.firsts[s.key] = max(ctx.firsts[s.key] or -math.huge, v)
             end
             if v > top then
@@ -270,7 +280,7 @@ local function search(st, depth, ctx, line, best)
     if not any then
         local n = clone(st)
         advance(n, n.t + 1, ctx)
-        line[d] = WAIT
+        line[d] = (ctx.powerType == "mana" and st.power < ctx.minCost) and OOM or WAIT
         top = search(n, depth - 1, ctx, line, best)
         line[d] = nil
     end
@@ -289,13 +299,17 @@ local function isFiller(s)
 end
 
 --- snap: from LR:Snapshot() (or a test). db: settings (manaWeight, healthWeight, depth).
---- Returns { seq = { spell, ... }, value = per-second value, firsts = { [key] = best value starting with it } }.
+--- Returns { seq = { spell, ... }, value = per-second value, firsts = { [key] = best value starting with it } }
+--- (firsts is only filled while the decision log is on: db.log).
 function Sim.Run(snap, db)
     local spells = snap.spells
-    local dpm, anyDpm, cpBest = 0, 0, 0
+    local dpm, anyDpm, cpBest, minCost = 0, 0, 0, math.huge
     local dotRate = {}
     for _, s in ipairs(spells) do
         local dmg = (s.dmgDirect or 0) + (s.dot or 0)
+        if s.cost > 0 then
+            minCost = min(minCost, s.cost)
+        end
         if s.cost > 0 and dmg > 0 then
             anyDpm = max(anyDpm, dmg / s.cost)
             if isFiller(s) then
@@ -343,7 +357,9 @@ function Sim.Run(snap, db)
         powerValue = powerValue,
         healValue = powerValue * (db.healthWeight or 0.8),
         cpValue = cpBest / CP_MAX * 0.8, -- a combo point is worth most of its share of a full finisher
-        firsts = {},
+        minCost = minCost,
+        -- The score of each possible first action: only collected for the decision log.
+        firsts = db.log and {} or nil,
     }
     -- The cast under way lands first: its power, effects and cooldown are already decided.
     if snap.pending then
@@ -355,7 +371,7 @@ function Sim.Run(snap, db)
 
     local best = { value = -math.huge, seq = {} }
     search(st, db.depth or 3, ctx, {}, best)
-    best.firsts = ctx.firsts
+    best.firsts = ctx.firsts or {}
     best.powerValue = powerValue
     return best
 end

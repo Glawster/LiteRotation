@@ -3,7 +3,8 @@
 -- /lrot lock | unlock      lock or move the display
 -- /lrot scale <n>          display scale
 -- /lrot spells             your known spells as the simulator sees them (rank, cost, cast, tooltip damage)
--- /lrot why                each possible next action and the best value per second a line starting with it reaches
+-- /lrot log [on|off]       switch the decision log on or off (off by default; recording costs a little work)
+-- /lrot why                the decision log: your last 10 casts, what was recommended and why
 -- /lrot toggle <spell>     turn a spell on/off for recommendations (e.g. /lrot toggle death_coil)
 -- /lrot ttl [class] <sec>  expected target lifetime (class: normal, elite, rare, rareelite, worldboss)
 -- /lrot mana <w>           mana weight (higher = more frugal); /lrot health <w>: health weight
@@ -79,42 +80,6 @@ local function spells()
         fmt(W.rAvg),
         fmt(W.rSpeed)
     )
-end
-
-local function why()
-    local r, snap = LR.result, LR.lastSnap
-    if not r or not snap then
-        Print("no recommendation right now (target an enemy).")
-        return
-    end
-    Print(
-        "%s %s/%s (%s)%s%s, ttl %.0fs, ready in %.1fs, %s worth %.2f dmg",
-        snap.powerType,
-        fmt(math.floor(snap.power)),
-        fmt(snap.powerMax),
-        snap.powerPlain and "read" or "estimated",
-        snap.form and (", form " .. snap.form) or "",
-        (snap.cp and snap.cp > 0) and (", combo points " .. snap.cp) or "",
-        snap.ttl,
-        snap.ready,
-        snap.powerType,
-        r.powerValue
-    )
-    local keys = {}
-    for k in pairs(r.firsts) do
-        keys[#keys + 1] = k
-    end
-    table.sort(keys, function(a, b)
-        return r.firsts[a] > r.firsts[b]
-    end)
-    for _, k in ipairs(keys) do
-        Print("  %-14s %.1f/s", k, r.firsts[k])
-    end
-    local line = {}
-    for i, s in ipairs(r.seq) do
-        line[i] = s.key
-    end
-    Print("plan: %s", table.concat(line, " > "))
 end
 
 local function probe()
@@ -199,7 +164,13 @@ SlashCmdList.LITEROTATION = function(msg)
     elseif cmd == "spells" then
         spells()
     elseif cmd == "why" then
-        why()
+        LR:PrintLog()
+    elseif cmd == "log" then
+        if a == "on" or a == "off" then
+            LR:SetLogging(a == "on")
+        else
+            LR:SetLogging(not db.log)
+        end
     elseif cmd == "toggle" and a ~= "" then
         db.disabled[a] = not db.disabled[a] or nil
         Print("%s %s.", a, db.disabled[a] and "off" or "on")
@@ -228,6 +199,6 @@ SlashCmdList.LITEROTATION = function(msg)
         LR:ScanSpells()
         Print("rescanned: %d spells.", #(LR.spells or {}))
     else
-        Print("commands: lock, unlock, scale <n>, spells, why, toggle <spell>, ttl [class] <sec>, mana <w>, health <w>, depth <n>, probe, rescan")
+        Print("commands: lock, unlock, scale <n>, spells, log [on|off], why, toggle <spell>, ttl [class] <sec>, mana <w>, health <w>, depth <n>, probe, rescan")
     end
 end

@@ -2,7 +2,7 @@
 ## Title: LiteRotation
 ## Notes: A light rotation helper: simulates a few casts ahead using only the spells you know, scored by their tooltip damage.
 ## Author: Glawster
-## Version: 0.2.0
+## Version: 0.3.0
 ## Category: Combat
 ## SavedVariables: LiteRotationDB
 
@@ -14,5 +14,6 @@ Classes\Hunter.lua
 Classes\Druid.lua
 State.lua
 Sim.lua
+Log.lua
 UI.lua
 Commands.lua
