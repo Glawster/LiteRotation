@@ -1,4 +1,4 @@
-name: LiteRotation
+name: wow
 channels:
   - conda-forge
 dependencies:
