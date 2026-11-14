@@ -103,6 +103,10 @@ local function updateWeapon()
         W.rSpeed, W.rAvg = rs, (rlo + rhi) / 2
     end
     W.wand = read(_G.HasWandEquipped) == true
+    local base, pos, neg = read(UnitAttackPower, "player")
+    if type(base) == "number" and type(pos) == "number" and type(neg) == "number" then
+        W.ap = base + pos + neg
+    end
     return W
 end
 
@@ -246,7 +250,7 @@ local function onSucceeded(s, now)
         end
     end
     if s.cd and s.cd > 0 then
-        S.cdEnd[s.key] = now + s.cd
+        S.cdEnd[s.cdKey or s.key] = now + s.cd
     end
     if s.gcd > 0 and castTime(s) == 0 and not def.nextSwing then
         S.gcdEnd = now + s.gcd
@@ -396,12 +400,15 @@ local function directNow(s, W)
                 base = base + avg * s.weaponPct / 100
             elseif s.bonus then
                 base = s.bonus + avg -- "increases ranged damage by X": a weapon shot plus X
-            elseif s.additional then
+            elseif s.additional or s.weaponPlus then
                 base = base + avg
             end
         end
     elseif s.bonus and base == 0 then
         base = s.bonus
+    end
+    if s.apPct and W.ap then -- "damage equal to 45% of your attack power"
+        base = base + W.ap * s.apPct / 100
     end
     return base > 0 and base or nil
 end

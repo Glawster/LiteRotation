@@ -188,6 +188,7 @@ function LR:ScanSpells()
             s.cost = clientCost(id, s.power) or byRank(def.cost, rank) or 0
             s.baseCast = byRank(def.cast, rank) or 0
             s.cd = byRank(def.cd, rank) or clientCooldown(id) or 0
+            s.cdKey = def.cdGroup or key -- spells in one cdGroup share a cooldown (the Shaman's shocks)
             if def.gcd == false then
                 s.gcd = 0
             else

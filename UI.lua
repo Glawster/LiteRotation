@@ -101,8 +101,9 @@ function LR:ShowResult(result, snap)
     if snap then
         local wait = snap.ready
         local first = result.seq[1]
-        if first and snap.cds[first.key] then
-            wait = math.max(wait, snap.cds[first.key])
+        local cdKey = first and (first.cdKey or first.key)
+        if cdKey and snap.cds[cdKey] then
+            wait = math.max(wait, snap.cds[cdKey])
         end
         local b = f.icons[1]
         if wait > 0.05 then

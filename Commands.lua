@@ -52,6 +52,15 @@ local function spells()
         if s.ap then
             extra[#extra + 1] = "+" .. fmt(s.ap) .. " AP"
         end
+        if s.apPct then
+            extra[#extra + 1] = fmt(s.apPct) .. "% of AP"
+        end
+        if s.weaponPlus then
+            extra[#extra + 1] = "weapon + " .. fmt(s.direct)
+        end
+        if s.cdKey and s.cdKey ~= s.key then
+            extra[#extra + 1] = "shares cooldown " .. s.cdKey
+        end
         if s.perHit or s.judge then
             extra[#extra + 1] = ("per hit %s, judgement %s"):format(fmt(s.perHit), fmt(s.judge))
         end
@@ -74,11 +83,12 @@ local function spells()
         )
     end
     Print(
-        "weapon: melee %s every %ss, ranged %s every %ss (last readable values)",
+        "weapon: melee %s every %ss, ranged %s every %ss, attack power %s (last readable values)",
         fmt(W.mhAvg),
         fmt(W.mhSpeed),
         fmt(W.rAvg),
-        fmt(W.rSpeed)
+        fmt(W.rSpeed),
+        fmt(W.ap)
     )
 end
 
@@ -128,6 +138,7 @@ local function probe()
     show("UnitRangedDamage", UnitRangedDamage, "player")
     show("UnitDamage", UnitDamage, "player")
     show("UnitAttackSpeed", UnitAttackSpeed, "player")
+    show("UnitAttackPower", UnitAttackPower, "player")
     show("UnitPower energy", UnitPower, "player", 3)
     show("UnitPower rage", UnitPower, "player", 1)
     show("GetComboPoints", GetComboPoints, "player", "target")

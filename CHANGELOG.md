@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Warrior and Shaman kits.
+- Spells can share a cooldown (the Shaman's shocks).
+- Tooltips: "weapon damage plus N" and "N% of your attack power" are read;
+  attack power bonuses are found even with other numbers in the sentence.
+
 ## 0.3.0
 
 - Out of mana shows a mana potion icon instead of the wait clock.

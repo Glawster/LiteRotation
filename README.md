@@ -15,8 +15,10 @@ priority lists) will do better, because it accounts for talents, procs and gear 
 | **Paladin** | Seal of Righteousness, Seal of Command, Judgement, Holy Strike, Exorcism, Hammer of Wrath, Holy Shock | Keeps a seal up and judges it on cooldown. On Forever Judgement doesn't consume the seal. Exorcism's early ranks only on Undead and Demons; Hammer of Wrath only when the game says it's usable (target below 20%). Off by default: Consecration. |
 | **Hunter** | Hunter's Mark, Serpent Sting, Arcane Shot, Aimed Shot, Raptor Strike, Mongoose Bite | Auto Shot runs by itself; Aimed Shot is charged for the Auto Shot time its cast costs. Shots or strikes are left out when the game says they're out of range. Off by default: Multi-Shot. |
 | **Druid** | Caster/Moonkin: Wrath, Starfire, Moonfire, Insect Swarm. Cat: Claw, Rake, Shred, Rip, Ferocious Bite. Bear: Maul, Swipe, Primal Bite, Lacerate | Recommends for the form you're in and never suggests shifting. Off by default: Shred (it needs you behind the target, which the addon can't see). |
+| **Warrior** | Heroic Strike, Mortal Strike, Bloodthirst, Slam, Battle Shout, Victory Rush; Battle: Overpower, Rend, Execute; Defensive: Revenge, Shield Slam, Rend; Berserker: Whirlwind, Execute | Recommends for the stance you're in and never suggests swapping. Overpower, Revenge, Victory Rush, Execute and Shield Slam are offered when the game says they're usable. Execute is worth more the more rage you have. Battle Shout counts for its whole duration. Off by default: Cleave, Thunder Clap. |
+| **Shaman** | Lightning Bolt, Earth Shock, Flame Shock, Frost Shock, Stormstrike | The three shocks share one cooldown, so it picks the best shock for the slot. Off by default: Chain Lightning, Fire Nova. Weapon imbues, Lightning Shield and totems are not modelled. |
 
-Other classes load the addon but stay idle. The Warlock kit is the most complete; the Paladin, Hunter and Druid kits
+Other classes load the addon but stay idle. The Warlock kit is the most complete; the other kits
 depend more on tooltip wording that hasn't been checked in game yet, so `/lrot spells` is the first thing to run.
 
 ## How it works
@@ -124,7 +126,7 @@ addon folders.
 | `LiteRotation.toc` | Addon manifest. |
 | `Core.lua` | Namespace, safe reads of hidden values, settings, class kit registry, spellbook scan. |
 | `Tooltip.lua` | Parses damage from tooltip text. |
-| `Classes/*.lua` | One kit per class (Warlock, Paladin, Hunter, Druid): spell ranks, kinds and rules a tooltip can't express. |
+| `Classes/*.lua` | One kit per class (Warlock, Paladin, Hunter, Druid, Warrior, Shaman): spell ranks, kinds and rules a tooltip can't express. |
 | `Log.lua` | The decision log behind `/lrot log` and `/lrot why`. |
 | `State.lua` | Tracks casts, cooldowns, DoTs, mana and target lifetime; builds the snapshot for the simulation. |
 | `Sim.lua` | The look-ahead search and scoring (plain Lua, no game calls). |

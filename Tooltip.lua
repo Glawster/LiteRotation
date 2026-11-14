@@ -107,8 +107,15 @@ function T.Parse(text)
             r.weaponPct = tonumber(pct)
         end
     end
+    -- "weapon damage plus 85" (Mortal Strike, Slam, Overpower): a weapon hit plus that much.
+    local wplus = not r.direct and t:match("weapon damage plus " .. N)
+    if wplus then
+        r.direct, r.weaponPlus = num(wplus), true
+    end
+    -- "damage equal to 45% of your attack power" (Bloodthirst).
+    r.apPct = tonumber(t:match("(%d+)%% of your attack power"))
     r.bonus = num(t:match("[Ii]ncreases? [%a ]-damage by " .. N))
-    r.ap = num(t:match("attack power[%a ]-by " .. N))
+    r.ap = num(t:match("attack power[^%.]-by " .. N)) -- "attack power of all party members within 20 yards by 15"
 
     -- Direct damage: what remains once the over-time phrases are removed.
     local rest = t:gsub(OVER_RANGE, ""):gsub(OVER_ONE, "")
@@ -132,7 +139,7 @@ function T.Parse(text)
         r.manaGain, r.healthCost = num(mana), num(hp)
     end
 
-    r.ok = (r.direct or r.dot or r.manaGain or r.weaponPct or r.bonus or r.ap) ~= nil
+    r.ok = (r.direct or r.dot or r.manaGain or r.weaponPct or r.bonus or r.ap or r.apPct) ~= nil
     return r
 end
 

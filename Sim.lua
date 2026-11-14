@@ -108,7 +108,7 @@ local function play(st, s, ctx, effectsOnly)
     local n = clone(st)
     local start = n.t
     if not effectsOnly then
-        local ready = n.cds[s.key] or 0
+        local ready = n.cds[s.cdKey or s.key] or 0
         if ready > start + MAX_DELAY then
             return nil
         end
@@ -205,10 +205,11 @@ local function play(st, s, ctx, effectsOnly)
         end
     end
     if s.cd and s.cd > 0 then
-        n.cds[s.key] = land + s.cd
+        n.cds[s.cdKey or s.key] = land + s.cd
     end
     if def.nextSwing then -- one queued at a time: the next can follow the swing that takes this one
-        n.cds[s.key] = max(n.cds[s.key] or 0, start + (ctx.swing or 2))
+        local k = s.cdKey or s.key
+        n.cds[k] = max(n.cds[k] or 0, start + (ctx.swing or 2))
     end
     if effectsOnly then
         return n
