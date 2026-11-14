@@ -1,0 +1,14 @@
+## Interface: 16001
+## Version: 0.1.0
+## Title: LiteRotation
+## Notes: A light rotation helper: simulates a few casts ahead using only the spells you know, scored by their tooltip damage.
+## Category: Combat
+## SavedVariables: LiteRotationDB
+
+Core.lua
+Tooltip.lua
+Classes\Warlock.lua
+State.lua
+Sim.lua
+UI.lua
+Commands.lua
