@@ -144,6 +144,7 @@ into AddOns instead: under Wine the client doesn't list symlinked addon folders.
 | `Sim.lua` | The look-ahead search and scoring (plain Lua, no game calls). |
 | `UI.lua` | The icon display. |
 | `Commands.lua` | The `/lrot` commands. |
+| `tools/release.py` | Builds the release zip and publishes GitHub releases (not shipped in the zip). |
 
 Adding a class means writing one `Classes/<Class>.lua` kit and listing it in `LiteRotation.toc`.
 
@@ -163,6 +164,21 @@ pre-commit run --all-files    # lint and format everything
 
 Commit with the environment active. `~/Source/LiteRotation` is a symlink to the
 repository in the AddOns folder.
+
+## Releasing
+
+1. Bump `## Version` in `LiteRotation.toc` and add a `## <version>` section to `CHANGELOG.md`.
+2. Commit and push to `main`.
+3. Build and publish:
+
+```bash
+python3 tools/release.py                              # build .release/LiteRotation-v<version>.zip and list its files
+python3 tools/release.py --publish [--prerelease]     # tag v<version>, push the tag, create the GitHub release
+```
+
+The zip holds the committed files minus dotfiles and everything `.pkgmeta` ignores; the release notes are the
+CHANGELOG section plus install steps. `--publish` refuses to run with uncommitted changes, off `main`, out of step
+with `origin`, without a CHANGELOG section, or when the tag already exists. It needs the GitHub CLI (`gh`) logged in.
 
 ## Documentation
 
