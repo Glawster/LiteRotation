@@ -30,25 +30,55 @@ local function spells()
         Print("no known spells from the %s kit.", tostring(LR.class))
         return
     end
+    local W = LR.S and LR.S.weapon or {}
     for _, s in ipairs(LR.spells) do
         local off = LR.db.disabled[s.key] and " |cffff6666[off]|r" or ""
         local bad = s.tipOk and "" or " |cffffaa00[no tooltip damage: skipped]|r"
+        local extra = {}
+        if s.manaGain then
+            extra[#extra + 1] = "mana +" .. fmt(s.manaGain)
+        end
+        if s.cpDirect or s.cpDot then
+            local t = s.cpDirect or s.cpDot
+            extra[#extra + 1] = ("1-5 points %s..%s%s"):format(fmt(t[1]), fmt(t[5]), s.cpDot and " over time" or "")
+        end
+        if s.bonus then
+            extra[#extra + 1] = "bonus " .. fmt(s.bonus)
+        end
+        if s.weaponPct then
+            extra[#extra + 1] = fmt(s.weaponPct) .. "% weapon"
+        end
+        if s.ap then
+            extra[#extra + 1] = "+" .. fmt(s.ap) .. " AP"
+        end
+        if s.perHit or s.judge then
+            extra[#extra + 1] = ("per hit %s, judgement %s"):format(fmt(s.perHit), fmt(s.judge))
+        end
         Print(
-            "%s r%d (id %d): cost %s, cast %s, cd %s, direct %s, dot %s/%ss%s%s%s",
+            "%s r%d (id %d): %s %s, cast %s, cd %s, direct %s (now %s), dot %s/%ss%s%s%s",
             s.key,
             s.rank,
             s.id,
+            s.power,
             fmt(s.cost),
             fmt(LR.CastTime(s)),
             fmt(s.cd),
             fmt(s.direct),
+            fmt(LR.DirectNow(s, W)),
             fmt(s.dot),
             fmt(s.dotDur),
-            s.manaGain and (", mana +" .. fmt(s.manaGain)) or "",
+            #extra > 0 and (", " .. table.concat(extra, ", ")) or "",
             off,
             bad
         )
     end
+    Print(
+        "weapon: melee %s every %ss, ranged %s every %ss (last readable values)",
+        fmt(W.mhAvg),
+        fmt(W.mhSpeed),
+        fmt(W.rAvg),
+        fmt(W.rSpeed)
+    )
 end
 
 local function why()
@@ -58,13 +88,17 @@ local function why()
         return
     end
     Print(
-        "mana %s/%s (%s), ttl %.0fs, ready in %.1fs, mana worth %.2f dmg",
-        fmt(math.floor(snap.mana)),
-        fmt(snap.manaMax),
-        snap.manaPlain and "read" or "estimated",
+        "%s %s/%s (%s)%s%s, ttl %.0fs, ready in %.1fs, %s worth %.2f dmg",
+        snap.powerType,
+        fmt(math.floor(snap.power)),
+        fmt(snap.powerMax),
+        snap.powerPlain and "read" or "estimated",
+        snap.form and (", form " .. snap.form) or "",
+        (snap.cp and snap.cp > 0) and (", combo points " .. snap.cp) or "",
         snap.ttl,
         snap.ready,
-        r.manaValue
+        snap.powerType,
+        r.powerValue
     )
     local keys = {}
     for k in pairs(r.firsts) do
@@ -127,6 +161,17 @@ local function probe()
     show("UnitClassification", UnitClassification, "target")
     show("UnitHealth target", UnitHealth, "target")
     show("UnitRangedDamage", UnitRangedDamage, "player")
+    show("UnitDamage", UnitDamage, "player")
+    show("UnitAttackSpeed", UnitAttackSpeed, "player")
+    show("UnitPower energy", UnitPower, "player", 3)
+    show("UnitPower rage", UnitPower, "player", 1)
+    show("GetComboPoints", GetComboPoints, "player", "target")
+    show("Shapeshift form", function()
+        local i = GetShapeshiftForm()
+        return i, i and i > 0 and select(4, GetShapeshiftFormInfo(i)) or nil
+    end)
+    show("IsSpellInRange", C_Spell.IsSpellInRange, id, "target")
+    show("UnitCreatureType", UnitCreatureType, "target")
     show("Nightfall aura read", function()
         return C_UnitAuras.GetPlayerAuraBySpellID(17941) ~= nil
     end)

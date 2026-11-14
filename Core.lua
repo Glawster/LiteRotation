@@ -128,15 +128,19 @@ local function byRank(v, r)
 end
 LR.byRank = byRank
 
---- The spell's power cost from the client (mana), nil if unreadable.
-local function clientCost(id)
+-- Power types by name (Enum.PowerType's values).
+LR.POWER = { mana = 0, rage = 1, energy = 3 }
+
+--- The spell's cost in `power` ("mana", "rage", "energy") from the client, nil if unreadable.
+local function clientCost(id, power)
     local costs = LR.read(C_Spell and C_Spell.GetSpellPowerCost, id)
     if type(costs) ~= "table" then
         return nil
     end
+    local want = LR.POWER[power or "mana"]
     for _, c in ipairs(costs) do
         local ty, cost = LR.field(c, "type"), LR.field(c, "cost")
-        if ty == 0 and type(cost) == "number" then
+        if ty == want and type(cost) == "number" then
             return cost
         end
     end
@@ -164,7 +168,8 @@ local function clientCooldown(id)
 end
 
 --- Rebuilds LR.spells: one entry per kit spell you know, at your highest rank, with its numbers.
---- Each entry: key, def, id, rank, name, icon, cost, cast, cd, gcd, and the tooltip's damage fields.
+--- Each entry: key, def, id, rank, name, icon, power, cost, baseCast, cd, gcd, and every field the tooltip parse
+--- found (direct, dot, dotDur, cpDirect, cpDot, bonus, weaponPct, ap, ...; see Tooltip.lua).
 function LR:ScanSpells()
     local kit = self.kit
     if not kit then
@@ -178,15 +183,29 @@ function LR:ScanSpells()
             local info = LR.read(C_Spell.GetSpellInfo, id)
             s.name = LR.field(info, "name") or key
             s.icon = LR.field(info, "iconID") or 134400
-            s.cost = clientCost(id) or byRank(def.cost, rank) or 0
+            s.power = def.power or kit.power or "mana"
+            s.cost = clientCost(id, s.power) or byRank(def.cost, rank) or 0
             s.baseCast = byRank(def.cast, rank) or 0
             s.cd = byRank(def.cd, rank) or clientCooldown(id) or 0
-            s.gcd = def.gcd == false and 0 or 1.5
-            local tip = ns.Tooltip.Parse(ns.Tooltip.Text(id))
-            s.direct, s.dot, s.dotDur, s.manaGain, s.healthCost = tip.direct, tip.dot, tip.dotDur, tip.manaGain, tip.healthCost
+            if def.gcd == false then
+                s.gcd = 0
+            else
+                s.gcd = type(def.gcd) == "number" and def.gcd or 1.5
+            end
+            local text = ns.Tooltip.Text(id)
+            local tip = ns.Tooltip.Parse(text)
+            for k, v in pairs(tip) do
+                if k ~= "ok" then
+                    s[k] = v
+                end
+            end
             s.tipOk = tip.ok
             if def.dotDur then -- the kit's duration wins (tooltips round or omit it)
                 s.dotDur = byRank(def.dotDur, rank)
+                s.cpDur = s.cpDur and s.dotDur
+            end
+            if def.parse then -- class-specific reading of the tooltip (e.g. a Paladin seal)
+                def.parse(s, text)
             end
             if def.prepare then
                 def.prepare(s)
@@ -200,7 +219,11 @@ function LR:ScanSpells()
     table.sort(spells, function(a, b)
         return a.key < b.key
     end)
-    self.spells, self.spellById = spells, byId
+    local byKey = {}
+    for _, s in ipairs(spells) do
+        byKey[s.key] = s
+    end
+    self.spells, self.spellById, self.spellByKey = spells, byId, byKey
     if kit.OnScan then
         kit.OnScan(self)
     end

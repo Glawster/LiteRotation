@@ -145,4 +145,11 @@ LR:RegisterKit("WARLOCK", {
     -- Instant Shadow Bolt from Nightfall (Shadow Trance), when the player's auras are readable.
     procs = { shadow_trance = 17941 },
     SOUL_SHARD = 6265,
+
+    Snapshot = function(snap, _, lr)
+        local bolt = lr.spellByKey and lr.spellByKey.shadow_bolt
+        if bolt and snap.procs.shadow_trance then
+            bolt.castNow = 0
+        end
+    end,
 })
