@@ -151,6 +151,13 @@ local function probe()
     show("Nightfall aura read", function()
         return C_UnitAuras.GetPlayerAuraBySpellID(17941) ~= nil
     end)
+    for _, s in ipairs(LR.spells or {}) do
+        if s.def.auraCheck then
+            local state, expires = LR.TargetAura(s.def)
+            local left = type(expires) == "number" and expires > 0 and (" (%ds left)"):format(expires - GetTime()) or ""
+            Print("%s on target: %s%s", s.name or s.key, state == "unknown" and "|cffff6666SECRET|r" or state, left)
+        end
+    end
     show("Soul Shards", C_Item and C_Item.GetItemCount or GetItemCount, 6265)
     show("Description", function()
         return (C_Spell.GetSpellDescription(id) or ""):sub(1, 80)

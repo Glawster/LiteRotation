@@ -5,12 +5,24 @@
 -- Auto Shot runs by itself and is never recommended; casting Aimed Shot or Multi-Shot pauses it, so those are charged
 -- the Auto Shot damage their cast time costs (`pausesAuto`). Shots need range and strikes need melee: spells the game
 -- says are out of range are left out. Hunter's Mark is valued as its attack power bonus on your ranged attacks
--- (14 attack power = 1 damage per second) for as long as the target lives.
+-- (14 attack power = 1 damage per second) for as long as the target lives; when its tooltip names no number the
+-- bonus comes from its rank (Classic's 20, 45, 75, 110). The mark is also read from the target whenever the game
+-- shows its auras (out of combat at least), so a mark cast before a /reload counts and one that has gone does not.
 --
 -- Not modelled: the pet, aspects, traps, stings other than Serpent Sting, Rapid Fire, Summon Hawk, Wing Clip.
 
 local _, ns = ...
 local LR = ns.LR
+
+-- Hunter's Mark's ranged attack power bonus by rank (rank 5 is Forever's 1213268 row of rank 4).
+local MARK_AP = { 20, 45, 75, 110, 110 }
+
+local function markPrepare(s)
+    if not s.ap then
+        s.ap = MARK_AP[s.rank] or MARK_AP[#MARK_AP]
+        s.tipOk = true
+    end
+end
 
 LR:RegisterKit("HUNTER", {
     autoShot = true,
@@ -22,6 +34,8 @@ LR:RegisterKit("HUNTER", {
             cast = 0,
             debuff = "hunters_mark",
             dotDur = 120,
+            auraCheck = true, -- read the mark on the target whenever the game shows it
+            prepare = markPrepare,
             update = function(s)
                 s.dot = s.ap and (s.ap / 14) * s.dotDur or nil
             end,

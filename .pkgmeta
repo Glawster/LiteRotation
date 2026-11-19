@@ -15,3 +15,5 @@ ignore:
   - LiteRotationEnvironment.yml
   - .envrc
   - tools
+  - _forever_
+  - _retail_

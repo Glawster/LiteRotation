@@ -2,12 +2,16 @@
 -- The Druid kit: recommendations for the form you are in (it never suggests shifting).
 --   caster / Moonkin: Wrath, Starfire, Moonfire, Insect Swarm (mana)
 --   Cat:  Claw, Rake and Shred build combo points; Rip and Ferocious Bite spend them (energy, 1 s GCD)
---   Bear: Maul on the next swing, Swipe, Primal Bite, Lacerate (rage)
+--   Bear: Maul on the next swing, Swipe, Primal Bite, Lacerate, Demoralizing Roar, Enrage (rage)
 -- Rank IDs and fallback costs are WoW Forever's, as recorded in Hekili_Druid/Druid.lua (Primal Bite is Forever's
 -- renamed Mangle; Lacerate's rank 1 is a talent there).
 --
--- Not modelled: shifting, Faerie Fire, Pounce / Ravage / Prowl (stealth openers), Tiger's Fury, Enrage, Clearcasting,
--- Lacerate's stacks, healing.
+-- Demoralizing Roar deals no damage: it is valued as the damage it prevents, its attack power cut at 14 attack power
+-- to 1 damage per second, while the target lives. Enrage is valued as its rage (10 at once and 2 a second for 10 s,
+-- counted at once), priced like any other power; it is off the global cooldown.
+--
+-- Not modelled: shifting, Faerie Fire, Pounce / Ravage / Prowl (stealth openers), Tiger's Fury, Enrage's armour
+-- loss, Clearcasting, Lacerate's stacks, healing, Demoralizing Roar on more than one enemy.
 
 local _, ns = ...
 local LR = ns.LR
@@ -16,6 +20,18 @@ local read = LR.read
 local CASTER = { caster = true, moonkin = true }
 local CAT = { cat = true }
 local BEAR = { bear = true }
+
+-- Rage from Enrage: 10 at once and 2 a second for 10 s (Hekili_Druid's DB2 reading).
+local ENRAGE_RAGE = 30
+
+local function enrageOnCast(n, _, ctx)
+    n.power = math.min(ctx.powerMax, n.power + ENRAGE_RAGE)
+end
+
+-- Demoralizing Roar and Shout: the attack power they take away, as damage prevented over their duration.
+local function demoralizeUpdate(s)
+    s.dot = s.ap and (s.ap / 14) * s.dotDur or nil
+end
 
 -- The form's spell ID (GetShapeshiftFormInfo's 4th return) to the kit's form key.
 local FORM_BY_SPELL = {
@@ -175,6 +191,29 @@ LR:RegisterKit("DRUID", {
             cast = 0,
             debuff = "lacerate",
             dotDur = 15,
+        },
+        demoralizing_roar = {
+            kind = "spell",
+            forms = BEAR,
+            power = "rage",
+            ranks = { 99, 1735, 9490, 9747, 9898 },
+            cost = 10,
+            cast = 0,
+            debuff = "demoralizing_roar",
+            dotDur = 30,
+            update = demoralizeUpdate,
+        },
+        enrage = {
+            kind = "spell",
+            forms = BEAR,
+            power = "rage",
+            ranks = { 5229 },
+            cost = 0,
+            cast = 0,
+            cd = 60,
+            gcd = false,
+            powerGain = ENRAGE_RAGE,
+            onCast = enrageOnCast,
         },
     },
 

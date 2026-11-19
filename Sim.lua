@@ -174,7 +174,13 @@ local function play(st, s, ctx, effectsOnly)
         if direct and land < ttl then
             dmg = dmg + direct
         end
+        local active = def.debuff and (n.debuffs[def.debuff] or 0) > land
         local d, h = applyEffect(n, def.debuff, dot, dur, land, def.persists and math.huge or ttl, def.heals)
+        -- Recasting an effect that is up and gains nothing (Hunter's Mark that outlasts the target, a DoT refreshed
+        -- early, the same seal) is never worth a global cooldown, even when every other choice also loses.
+        if active and d <= 0 and not direct and not def.consumes and not def.onCast and def.cp ~= "gen" then
+            return nil
+        end
         dmg, heal = dmg + d, heal + h
         if def.consumes then
             local oldEnd = n.debuffs[def.consumes] or 0
@@ -281,7 +287,9 @@ local function search(st, depth, ctx, line, best)
     if not any then
         local n = clone(st)
         advance(n, n.t + 1, ctx)
-        line[d] = (ctx.powerType == "mana" and st.power < ctx.minCost) and OOM or WAIT
+        -- Out of mana only when there is a spell to compare against (an empty list is not a mana problem).
+        local oom = ctx.powerType == "mana" and ctx.minCost < math.huge and st.power < ctx.minCost
+        line[d] = oom and OOM or WAIT
         top = search(n, depth - 1, ctx, line, best)
         line[d] = nil
     end
@@ -307,7 +315,13 @@ function Sim.Run(snap, db)
     local dpm, anyDpm, cpBest, minCost = 0, 0, 0, math.huge
     local dotRate = {}
     for _, s in ipairs(spells) do
-        local dmg = (s.dmgDirect or 0) + (s.dot or 0)
+        -- An effect's damage counts only while the target lives (Hunter's Mark lasts 2 minutes, a mob about 18s):
+        -- otherwise one long effect makes power look so precious that every other spell seems to lose.
+        local dot = s.dot or 0
+        if dot > 0 and s.dotDur and s.dotDur > snap.ttl and not s.def.persists then
+            dot = dot * snap.ttl / s.dotDur
+        end
+        local dmg = (s.dmgDirect or 0) + dot
         if s.cost > 0 then
             minCost = min(minCost, s.cost)
         end

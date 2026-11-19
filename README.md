@@ -13,9 +13,9 @@ priority lists) will do better, because it accounts for talents, procs and gear 
 |---|---|---|
 | **Warlock** | Shadow Bolt, Immolate, Corruption, Bane of Agony, Siphon Life, Drain Life, Searing Pain, Incinerate, Conflagrate, Wrack, Life Tap, your wand | Typically keeps Bane of Agony, Corruption and Immolate up, then wands or casts Shadow Bolt depending on mana, with Life Tap when nearly out. Off by default: Death Coil, Shadowburn, Soul Fire, Drain Soul. |
 | **Paladin** | Seal of Righteousness, Seal of Command, Judgement, Holy Strike, Exorcism, Hammer of Wrath, Holy Shock | Keeps a seal up and judges it on cooldown. On Forever Judgement doesn't consume the seal. Exorcism's early ranks only on Undead and Demons; Hammer of Wrath only when the game says it's usable (target below 20%). Off by default: Consecration. |
-| **Hunter** | Hunter's Mark, Serpent Sting, Arcane Shot, Aimed Shot, Raptor Strike, Mongoose Bite | Auto Shot runs by itself; Aimed Shot is charged for the Auto Shot time its cast costs. Shots or strikes are left out when the game says they're out of range. Off by default: Multi-Shot. |
-| **Druid** | Caster/Moonkin: Wrath, Starfire, Moonfire, Insect Swarm. Cat: Claw, Rake, Shred, Rip, Ferocious Bite. Bear: Maul, Swipe, Primal Bite, Lacerate | Recommends for the form you're in and never suggests shifting. Off by default: Shred (it needs you behind the target, which the addon can't see). |
-| **Warrior** | Heroic Strike, Mortal Strike, Bloodthirst, Slam, Battle Shout, Victory Rush; Battle: Overpower, Rend, Execute; Defensive: Revenge, Shield Slam, Rend; Berserker: Whirlwind, Execute | Recommends for the stance you're in and never suggests swapping. Overpower, Revenge, Victory Rush, Execute and Shield Slam are offered when the game says they're usable. Execute is worth more the more rage you have. Battle Shout counts for its whole duration. Off by default: Cleave, Thunder Clap. |
+| **Hunter** | Hunter's Mark, Serpent Sting, Arcane Shot, Aimed Shot, Raptor Strike, Mongoose Bite | Auto Shot runs by itself; Hunter's Mark counts as its attack power bonus while the target lives; Aimed Shot is charged for the Auto Shot time its cast costs. Shots or strikes are left out when the game says they're out of range. Off by default: Multi-Shot. |
+| **Druid** | Caster/Moonkin: Wrath, Starfire, Moonfire, Insect Swarm. Cat: Claw, Rake, Shred, Rip, Ferocious Bite. Bear: Maul, Swipe, Primal Bite, Lacerate, Demoralizing Roar, Enrage | Recommends for the form you're in and never suggests shifting. Demoralizing Roar counts as the damage it prevents while the target lives; Enrage as the rage it gives. Off by default: Shred (it needs you behind the target, which the addon can't see). |
+| **Warrior** | Heroic Strike, Mortal Strike, Bloodthirst, Slam, Battle Shout, Demoralizing Shout, Victory Rush; Battle: Overpower, Rend, Execute; Defensive: Revenge, Shield Slam, Rend; Berserker: Whirlwind, Execute | Recommends for the stance you're in and never suggests swapping. Overpower, Revenge, Victory Rush, Execute and Shield Slam are offered when the game says they're usable. Execute is worth more the more rage you have. Battle Shout counts for its whole duration; Demoralizing Shout as the damage it prevents while the target lives. Off by default: Cleave, Thunder Clap. |
 | **Shaman** | Lightning Bolt, Earth Shock, Flame Shock, Frost Shock, Stormstrike | The three shocks share one cooldown, so it picks the best shock for the slot. Off by default: Chain Lightning, Fire Nova. Weapon imbues, Lightning Shield and totems are not modelled. |
 
 Other classes load the addon but stay idle. The Warlock kit is the most complete; the other kits
@@ -54,8 +54,9 @@ depend more on tooltip wording that hasn't been checked in game yet, so `/lrot s
 
 ## The display
 
-One large icon shows the spell to cast next, with a cooldown swirl until it can be cast. Two smaller icons show the
-rest of the planned sequence. When you're out of mana and nothing is castable, it shows a mana potion: drink or use a potion. While the display is unlocked, hover over it to see the plan and its score (when
+One icon shows the next spell to cast. It turns **red** while you're out of range and **green** while the spell
+isn't castable yet (its cooldown, or not enough mana, rage or energy). While the display is unlocked, hover over it to
+see the planned sequence and its score (when
 locked it ignores the mouse, so clicks pass through to the game; use `/lrot log` and `/lrot why` instead).
 
 It shows while you have an attackable target that isn't dead. Use `/lrot unlock` to drag it, then `/lrot lock`.
@@ -110,16 +111,15 @@ the other classes depend on tooltip wording that may differ on Forever. Run `/lr
 
 ### From source
 
-The repository is the addon: `LiteRotation.toc` and the Lua files sit at its root. To develop it, clone it straight
-into the game's AddOns folder:
+LiteRotation's source lives in the `LiteRotation/` folder of the wowUtilities repository, which holds the author's
+addons and a deploy script. Edit it there, then copy it into the game with:
 
 ```bash
-cd "<WoW install>/_forever_/Interface/AddOns"
-git clone https://github.com/Glawster/LiteRotation.git
+./deploy.py LiteRotation      # from the wowUtilities root; the _forever_ flag file sends it to the Forever client
 ```
 
-Restart the game, then `/reload` after edits. The game ignores the repository's other files. Don't symlink the folder
-into AddOns instead: under Wine the client doesn't list symlinked addon folders.
+`/reload` in game after a deploy. Don't symlink the folder into AddOns instead: under Wine the client doesn't list
+symlinked addon folders.
 
 ## Known limits
 
@@ -162,23 +162,26 @@ pre-commit install
 pre-commit run --all-files    # lint and format everything
 ```
 
-Commit with the environment active. `~/Source/LiteRotation` is a symlink to the
-repository in the AddOns folder.
+Commit with the environment active. Development happens in the private wowUtilities repository
+(`~/Source/wowUtilities/LiteRotation`); `./deploy.py LiteRotation` there copies it into the AddOns folder.
 
 ## Releasing
 
 1. Bump `## Version` in `LiteRotation.toc` and add a `## <version>` section to `CHANGELOG.md`.
-2. Commit and push to `main`.
+2. Commit and push wowUtilities' `main`.
 3. Build and publish:
 
 ```bash
 python3 tools/release.py                              # build .release/LiteRotation-v<version>.zip and list its files
-python3 tools/release.py --publish [--prerelease]     # tag v<version>, push the tag, create the GitHub release
+python3 tools/release.py --publish [--prerelease]     # release it on the public Glawster/LiteRotation
 ```
 
 The zip holds the committed files minus dotfiles and everything `.pkgmeta` ignores; the release notes are the
-CHANGELOG section plus install steps. `--publish` refuses to run with uncommitted changes, off `main`, out of step
-with `origin`, without a CHANGELOG section, or when the tag already exists. It needs the GitHub CLI (`gh`) logged in.
+CHANGELOG section plus install steps. `--publish` copies this folder's committed files onto the public repository's
+`main` as one commit (a fast-forward; its history is kept), tags it `v<version>` there and creates the GitHub release
+on it. It also tags wowUtilities `LiteRotation-v<version>` to record which commit was released. It refuses to run
+with uncommitted changes, off `main`, out of step with `origin`, without a CHANGELOG section, or when either tag
+already exists. It needs the GitHub CLI (`gh`) logged in.
 
 ## Documentation
 

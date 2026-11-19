@@ -1,6 +1,7 @@
 -- LiteRotation/Classes/Warrior.lua
 -- The Warrior kit: rage, stances, and recommendations for the stance you are in (it never suggests a swap).
---   any stance: Heroic Strike (next swing), Mortal Strike, Bloodthirst, Slam, Battle Shout, Victory Rush
+--   any stance: Heroic Strike (next swing), Mortal Strike, Bloodthirst, Slam, Battle Shout, Demoralizing Shout,
+--               Victory Rush
 --   Battle:     Overpower (after a dodge), Rend, Execute, Thunder Clap (off by default)
 --   Defensive:  Revenge (after a block, dodge or parry), Shield Slam, Rend
 --   Berserker:  Whirlwind, Execute
@@ -9,10 +10,11 @@
 -- Spells usable only after a trigger (Overpower, Revenge, Victory Rush, Execute below 20% health, Shield Slam with a
 -- shield) are offered when the game says they are usable. Execute converts the rage left after its cost into extra
 -- damage; the kit values that and charges for spending all your rage. Battle Shout is valued as its attack power
--- bonus (14 attack power = 1 damage per second) for its whole duration, since it carries on to the next mob.
+-- bonus (14 attack power = 1 damage per second) for its whole duration, since it carries on to the next mob;
+-- Demoralizing Shout as the damage its attack power cut prevents while the target lives.
 --
 -- Not modelled: stance swaps, Charge, Intercept, Bloodrage, Berserker Rage, Sweeping Strikes, Death Wish, Sunder
--- Armor, Hamstring, Demoralizing Shout, rage refunds on a miss, Execute spending all rage in the rage estimate.
+-- Armor, Hamstring, rage refunds on a miss, Execute spending all rage in the rage estimate.
 
 local _, ns = ...
 local LR = ns.LR
@@ -191,6 +193,17 @@ LR:RegisterKit("WARRIOR", {
             self = true,
             persists = true,
             dotDur = 120,
+            update = function(s)
+                s.dot = s.ap and (s.ap / 14) * s.dotDur or nil
+            end,
+        },
+        demoralizing_shout = {
+            kind = "spell",
+            ranks = { 1160, 6190, 11554, 11555, 11556 },
+            cost = 10,
+            cast = 0,
+            debuff = "demoralizing_shout",
+            dotDur = 45,
             update = function(s)
                 s.dot = s.ap and (s.ap / 14) * s.dotDur or nil
             end,

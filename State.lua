@@ -243,6 +243,9 @@ local function onSucceeded(s, now)
             R.est = math.max(0, R.est - s.cost)
         end
     end
+    if def.powerGain and not R.plain and R.est then -- Enrage: rage now (the estimate takes it all at once)
+        R.est = math.min(R.max or math.huge, R.est + def.powerGain)
+    end
     if def.kind == "tap" then
         local M = powerState("mana")
         if not M.plain and M.est and s.manaGain then
@@ -420,8 +423,90 @@ local function hasAura(spellID)
     return a ~= nil
 end
 
+local function isSecret(v)
+    return v ~= nil and LR.plain(v) == nil
+end
+
+-- One of your debuffs on the target, by index: spell ID and expiry. `secret` when the game hides it, nil past the
+-- end of the list.
+local function auraAt(i)
+    local byIndex = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+    if byIndex then
+        local ok, a = pcall(byIndex, "target", i, "HARMFUL|PLAYER")
+        if not ok or isSecret(a) then
+            return "secret"
+        end
+        if a == nil then
+            return nil
+        end
+        local id = LR.field(a, "spellId")
+        if id == nil then
+            return "secret"
+        end
+        return id, LR.field(a, "expirationTime")
+    end
+    local ok, name, _, _, _, _, expires, _, _, _, id = pcall(_G.UnitAura, "target", i, "HARMFUL|PLAYER")
+    if not ok or isSecret(name) or isSecret(id) then
+        return "secret"
+    end
+    if name == nil then
+        return nil
+    end
+    return id, LR.plain(expires)
+end
+
+--- Your aura from spell def on the target, when the game shows it: "up" and its expiry (nil if hidden), "down",
+--- or "unknown" while the target's auras are secret (in combat on Forever).
+local function targetAura(def)
+    if not read(UnitExists, "target") then
+        return "unknown"
+    end
+    local ranks = {}
+    for _, id in ipairs(def.ranks) do
+        ranks[id] = true
+    end
+    for i = 1, 40 do
+        local id, expires = auraAt(i)
+        if id == "secret" then
+            return "unknown"
+        elseif id == nil then
+            return "down"
+        elseif ranks[id] then
+            return "up", expires
+        end
+    end
+    return "unknown"
+end
+LR.TargetAura = targetAura
+
+-- Correct our record of `auraCheck` effects (Hunter's Mark) from the target's auras whenever the game shows them:
+-- a mark cast before a /reload, or one we missed, counts. A mark that is gone is forgotten, but only out of combat:
+-- in combat an empty list may just mean the game is hiding it.
+local function syncTargetAuras(all, now, inCombat)
+    for _, s in ipairs(all) do
+        local def = s.def
+        if def.auraCheck and def.debuff then
+            local state, expires = targetAura(def)
+            if state == "up" then
+                local t = target(true)
+                if type(expires) == "number" and expires > 0 then
+                    t.debuffs[def.debuff] = expires
+                elseif (t.debuffs[def.debuff] or 0) <= now then
+                    t.debuffs[def.debuff] = now + (s.dotDur or def.dotDur or 0)
+                end
+                t.rates[def.debuff] = t.rates[def.debuff] or (s.dot and s.dotDur and s.dot / s.dotDur) or 0
+            elseif state == "down" and not inCombat then
+                local t = target(false)
+                if t then
+                    t.debuffs[def.debuff], t.rates[def.debuff] = nil, nil
+                end
+            end
+        end
+    end
+end
+
 -- Whether s may be recommended right now (form, power, range, trigger, target type).
-local function castableNow(s, form, powerType, db)
+local function castableNow(s, form, powerType, db, ignoreRange)
     local def = s.def
     if db.disabled[s.key] or not s.tipOk then
         return false
@@ -435,7 +520,7 @@ local function castableNow(s, form, powerType, db)
     if def.kind == "wand" and not S.weapon.wand then
         return false
     end
-    if read(C_Spell.IsSpellInRange, s.id, "target") == false then
+    if not ignoreRange and read(C_Spell.IsSpellInRange, s.id, "target") == false then
         return false
     end
     if def.reactive then
@@ -515,6 +600,8 @@ function LR:Snapshot()
         end
     end
     addEffects(S.self)
+    syncTargetAuras(all, now, inCombat)
+    t = target(false)
     if t then
         addEffects(t)
     end
@@ -536,6 +623,16 @@ function LR:Snapshot()
     for _, s in ipairs(all) do
         if castableNow(s, form, powerType, self.db) then
             snap.spells[#snap.spells + 1] = s
+        end
+    end
+    -- Nothing in range: plan as if in range, so the display shows what to cast on arrival (tinted red) rather than
+    -- an empty plan that looks like being out of mana.
+    if #snap.spells == 0 then
+        for _, s in ipairs(all) do
+            if castableNow(s, form, powerType, self.db, true) then
+                snap.spells[#snap.spells + 1] = s
+                snap.outOfRange = true
+            end
         end
     end
     return snap
